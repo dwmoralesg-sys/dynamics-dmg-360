@@ -2,6 +2,12 @@
 
 **Innovamos, conectamos, transformamos.**
 
+## Publicación oficial
+
+- Web: https://dynamics-dmg-360.vercel.app/
+- Código fuente: https://github.com/dwmoralesg-sys/dynamics-dmg-360
+- Propietario: Daniel Morales
+
 Plataforma web empresarial y administrable para Dynamics DMG 360: presenta y comercializa servicios integrales de administración y negocios, ingeniería industrial, ingeniería de sistemas y servicio técnico; capta clientes potenciales, registra solicitudes de cotización y analiza el comportamiento de los visitantes respetando su privacidad.
 
 Concepto central: **Negocio → Procesos → Tecnología.**
