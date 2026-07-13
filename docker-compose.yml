@@ -1,0 +1,27 @@
+# PostgreSQL para desarrollo local de Dynamics DMG 360.
+# Uso:  docker compose up -d
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: dmg360_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dmg_admin
+      POSTGRES_PASSWORD: dmg_password
+      POSTGRES_DB: dynamics_dmg_360
+    ports:
+      - "5432:5432"
+    volumes:
+      - dmg_pgdata:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer:latest
+    container_name: dmg360_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  dmg_pgdata:

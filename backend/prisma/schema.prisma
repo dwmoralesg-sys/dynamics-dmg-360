@@ -1,0 +1,257 @@
+// ============================================================
+//  Dynamics DMG 360 — Modelo de datos (PostgreSQL / Prisma)
+//  Innovamos, conectamos, transformamos.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------- ENUMS ----------------------------
+
+enum Rol {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+enum AreaServicio {
+  ADMINISTRACION_NEGOCIOS
+  INGENIERIA_INDUSTRIAL
+  INGENIERIA_SISTEMAS
+  SERVICIO_TECNICO
+  CONSULTORIA
+}
+
+enum EstadoLead {
+  NUEVO
+  CONTACTADO
+  EN_PROCESO
+  GANADO
+  PERDIDO
+}
+
+enum EstadoCotizacion {
+  SOLICITADA
+  EN_ELABORACION
+  ENVIADA
+  ACEPTADA
+  RECHAZADA
+}
+
+enum EstadoProyecto {
+  PLANIFICADO
+  EN_CURSO
+  FINALIZADO
+}
+
+enum TipoContenido {
+  TEXTO
+  HTML
+  IMAGEN
+  JSON
+}
+
+// ----------------------- USUARIOS ---------------------------
+// Cuentas del panel administrativo (/admin). Nunca se guarda la
+// contraseña en claro: solo el hash (bcrypt).
+
+model Usuario {
+  id           String    @id @default(uuid())
+  nombre       String
+  email        String    @unique
+  passwordHash String
+  rol          Rol       @default(EDITOR)
+  activo       Boolean   @default(true)
+  ultimoAcceso DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  cotizaciones Cotizacion[] @relation("CotizacionAsignada")
+  auditorias   AuditLog[]
+
+  @@index([email])
+  @@map("usuarios")
+}
+
+// ----------------------- SERVICIOS --------------------------
+// Catálogo comercial administrable desde el panel.
+
+model Servicio {
+  id                String       @id @default(uuid())
+  slug              String       @unique
+  titulo            String
+  resumen           String
+  descripcion       String       @db.Text
+  area              AreaServicio
+  icono             String?      // nombre de icono para el frontend
+  imagenUrl         String?
+  precioReferencial Decimal?     @db.Decimal(12, 2)
+  moneda            String       @default("PEN")
+  destacado         Boolean      @default(false)
+  orden             Int          @default(0)
+  activo            Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  items CotizacionItem[]
+
+  @@index([area])
+  @@index([activo, destacado])
+  @@map("servicios")
+}
+
+// ------------------------- LEADS ----------------------------
+// Clientes potenciales captados por los formularios públicos.
+
+model Lead {
+  id        String        @id @default(uuid())
+  nombre    String
+  empresa   String?
+  email     String
+  telefono  String?
+  ciudad    String?
+  pais      String?       @default("Perú")
+  area      AreaServicio?
+  mensaje   String        @db.Text
+  origen    String?       // fuente de tráfico / campaña de captación
+  estado    EstadoLead    @default(NUEVO)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  cotizaciones Cotizacion[]
+
+  @@index([estado])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+// ---------------------- COTIZACIONES ------------------------
+
+model Cotizacion {
+  id            String           @id @default(uuid())
+  codigo        String           @unique // p.ej. COT-2026-0001
+  leadId        String
+  estado        EstadoCotizacion @default(SOLICITADA)
+  notas         String?          @db.Text
+  montoEstimado Decimal?         @db.Decimal(12, 2)
+  moneda        String           @default("PEN")
+  asignadoAId   String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  asignadoA Usuario?         @relation("CotizacionAsignada", fields: [asignadoAId], references: [id], onDelete: SetNull)
+  items     CotizacionItem[]
+
+  @@index([estado])
+  @@index([leadId])
+  @@map("cotizaciones")
+}
+
+model CotizacionItem {
+  id             String   @id @default(uuid())
+  cotizacionId   String
+  servicioId     String?
+  descripcion    String
+  cantidad       Int      @default(1)
+  precioUnitario Decimal? @db.Decimal(12, 2)
+
+  cotizacion Cotizacion @relation(fields: [cotizacionId], references: [id], onDelete: Cascade)
+  servicio   Servicio?  @relation(fields: [servicioId], references: [id], onDelete: SetNull)
+
+  @@map("cotizacion_items")
+}
+
+// ------------------------ PROYECTOS -------------------------
+// Portafolio público administrable.
+
+model Proyecto {
+  id          String         @id @default(uuid())
+  slug        String         @unique
+  titulo      String
+  cliente     String?
+  resumen     String
+  descripcion String         @db.Text
+  area        AreaServicio
+  imagenUrl   String?
+  resultados  String?        @db.Text // impacto / resultados obtenidos
+  estado      EstadoProyecto @default(FINALIZADO)
+  fechaInicio DateTime?
+  fechaFin    DateTime?
+  destacado   Boolean        @default(false)
+  orden       Int            @default(0)
+  publicado   Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([publicado, destacado])
+  @@map("proyectos")
+}
+
+// --------------------- CONTENIDO WEB ------------------------
+// CMS ligero: bloques editables por clave (texto, html, imagen).
+// Permite cambiar textos e imágenes sin tocar código.
+
+model ContenidoWeb {
+  id          String        @id @default(uuid())
+  clave       String        @unique // p.ej. "home.hero.titulo"
+  grupo       String        // p.ej. "home", "nosotros", "footer"
+  tipo        TipoContenido @default(TEXTO)
+  valor       String        @db.Text
+  descripcion String?
+  updatedAt   DateTime      @updatedAt
+
+  @@index([grupo])
+  @@map("contenido_web")
+}
+
+// ------------------------- VISITAS --------------------------
+// Analítica de visitantes con diseño respetuoso de la privacidad:
+// no se almacena la IP en claro (solo un hash), ni datos que
+// identifiquen personalmente a un visitante anónimo.
+
+model Visita {
+  id          String   @id @default(uuid())
+  path        String
+  referer     String?
+  fuente      String?  // utm_source / origen de tráfico
+  campana     String?  // utm_campaign
+  pais        String?  // aproximado
+  ciudad      String?  // aproximada
+  dispositivo String?  // desktop / mobile / tablet
+  navegador   String?
+  so          String?  // sistema operativo
+  ipHash      String?  // hash irreversible, nunca la IP real
+  sessionId   String?  // identificador anónimo de sesión (cookie)
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([path])
+  @@map("visitas")
+}
+
+// ----------------------- AUDITORÍA --------------------------
+// Registro de acciones administrativas (trazabilidad).
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  usuarioId String?
+  accion    String   // p.ej. "LEAD_ACTUALIZADO"
+  entidad   String?  // p.ej. "Lead"
+  entidadId String?
+  detalle   String?  @db.Text
+  ip        String?
+  createdAt DateTime @default(now())
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([usuarioId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
