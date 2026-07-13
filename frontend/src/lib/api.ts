@@ -5,15 +5,20 @@ type Options = RequestInit & { token?: string };
 
 async function request<T>(path: string, opts: Options = {}): Promise<T> {
   const { token, headers, ...rest } = opts;
-  const res = await fetch(`${API}${path}`, {
-    ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
-    cache: 'no-store',
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API}${path}`, {
+      ...rest,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...headers,
+      },
+      cache: 'no-store',
+    });
+  } catch {
+    throw new Error('No pudimos conectar con el servidor. Puedes enviarnos tu solicitud por WhatsApp o correo.');
+  }
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.message || `Error ${res.status}`);

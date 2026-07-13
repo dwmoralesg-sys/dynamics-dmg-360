@@ -13,6 +13,10 @@ export function QuoteForm({ servicioPreseleccionado }: { servicioPreseleccionado
   const [estado, setEstado] = useState<'idle' | 'enviando' | 'ok' | 'error'>('idle');
   const [error, setError] = useState('');
 
+  const whatsappUrl = `https://wa.me/51985850698?text=${encodeURIComponent(
+    `Hola, soy ${form.nombre || 'un cliente'}. ${form.mensaje || 'Quiero solicitar una cotización.'}`,
+  )}`;
+
   const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   async function enviar(e: React.FormEvent) {
@@ -86,7 +90,17 @@ export function QuoteForm({ servicioPreseleccionado }: { servicioPreseleccionado
         <textarea id="mensaje" required minLength={10} value={form.mensaje} onChange={(e) => set('mensaje', e.target.value)} />
       </div>
       {estado === 'error' && (
-        <p style={{ color: '#ff8f8f', fontSize: 14, marginBottom: 12 }}>{error}</p>
+        <div role="alert" style={{ color: '#ffb3b3', fontSize: 14, marginBottom: 16 }}>
+          <p style={{ marginBottom: 10 }}>{error}</p>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <a className="btn btn-secondary" href={whatsappUrl} target="_blank" rel="noreferrer">
+              Enviar por WhatsApp
+            </a>
+            <a className="btn btn-secondary" href="mailto:dwmoralesg@gmail.com">
+              Enviar por correo
+            </a>
+          </div>
+        </div>
       )}
       <button className="btn btn-primary" type="submit" disabled={estado === 'enviando'}>
         {estado === 'enviando' ? 'Enviando…' : 'Enviar solicitud'}
