@@ -44,6 +44,7 @@ export const api = {
     request<{ id: string }>(`/leads`, { method: 'POST', body: JSON.stringify(data) }),
   track: (data: unknown) =>
     request(`/analytics/track`, { method: 'POST', body: JSON.stringify(data) }).catch(() => {}),
+  contador: () => request<{ total: number; visitantes: number }>(`/analytics/contador`),
   login: (email: string, password: string) =>
     request<{ accessToken: string; usuario: any }>(`/auth/login`, {
       method: 'POST', body: JSON.stringify({ email, password }),

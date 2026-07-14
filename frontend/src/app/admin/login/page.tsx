@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { auth } from '@/lib/auth';
 import { Logo } from '@/components/Logo';
 
 export default function LoginPage() {
@@ -16,8 +17,7 @@ export default function LoginPage() {
     setCargando(true); setError('');
     try {
       const { accessToken, usuario } = await api.login(email, password);
-      sessionStorage.setItem('dmg_token', accessToken);
-      sessionStorage.setItem('dmg_user', JSON.stringify(usuario));
+      auth.set(accessToken, usuario);
       router.push('/admin/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo iniciar sesión.');
@@ -27,7 +27,7 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="section" style={{ display: 'grid', placeItems: 'center', minHeight: '70vh' }}>
+    <section style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', padding: 20 }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ textAlign: 'center', marginBottom: 26 }}><Logo size={34} /></div>
         <form onSubmit={submit} className="card">

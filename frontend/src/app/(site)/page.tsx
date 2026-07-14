@@ -4,6 +4,7 @@ import { ServiceCard } from '@/components/ServiceCard';
 import { api } from '@/lib/api';
 import { SAMPLE_SERVICIOS } from '@/lib/sample';
 import { IMG } from '@/lib/images';
+import { getGrupo, getContacto } from '@/lib/site';
 
 async function getServicios() {
   try { return await api.servicios(); } catch { return SAMPLE_SERVICIOS; }
@@ -23,8 +24,12 @@ const flujo = [
 ];
 
 export default async function Home() {
-  const servicios = await getServicios();
+  const [servicios, home, contacto] = await Promise.all([getServicios(), getGrupo('home'), getContacto()]);
   const destacados = servicios.filter((s) => s.destacado).slice(0, 6);
+  const eslogan = home['home.hero.eslogan'] || 'Innovamos · conectamos · transformamos';
+  const subtitulo = home['home.hero.subtitulo'] ||
+    'Un solo aliado para digitalizar, automatizar y optimizar tu operación: desde la estrategia de negocio y la mejora de procesos hasta el desarrollo full stack y la robótica logística.';
+  const tel = contacto.telefono.replace(/\s+/g, '');
 
   return (
     <>
@@ -32,22 +37,18 @@ export default async function Home() {
       <section className="section" style={{ paddingTop: 76, paddingBottom: 70 }}>
         <div className="container hero-grid" style={{ display: 'grid', gridTemplateColumns: '1.02fr 0.98fr', gap: 46, alignItems: 'center' }}>
           <div>
-            <span className="eyebrow">Innovamos · conectamos · transformamos</span>
+            <span className="eyebrow">{eslogan}</span>
             <h1 style={{ fontSize: 'clamp(2.5rem, 5.2vw, 3.9rem)', marginTop: 20 }}>
               Ingeniería, negocio y <span className="gradient-text">tecnología 360°</span> sin fronteras
             </h1>
-            <p className="lead" style={{ marginTop: 22 }}>
-              Un solo aliado para digitalizar, automatizar y optimizar tu operación:
-              desde la estrategia de negocio y la mejora de procesos hasta el desarrollo
-              full stack y la robótica logística.
-            </p>
+            <p className="lead" style={{ marginTop: 22 }}>{subtitulo}</p>
             <div style={{ display: 'flex', gap: 14, marginTop: 32, flexWrap: 'wrap' }}>
               <Link href="/contacto" className="btn btn-primary">Solicitar cotización</Link>
               <Link href="/servicios" className="btn btn-ghost">Ver servicios</Link>
             </div>
             <div style={{ marginTop: 26, display: 'flex', gap: 22, flexWrap: 'wrap', fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--ink-soft)' }}>
-              <a href="mailto:dwmoralesg@gmail.com" style={{ color: 'var(--teal-soft)' }}>✉ dwmoralesg@gmail.com</a>
-              <a href="tel:+51985850698" style={{ color: 'var(--teal-soft)' }}>✆ +51 985 850 698</a>
+              <a href={`mailto:${contacto.email}`} style={{ color: 'var(--teal-soft)' }}>✉ {contacto.email}</a>
+              <a href={`tel:${tel}`} style={{ color: 'var(--teal-soft)' }}>✆ {contacto.telefono}</a>
             </div>
           </div>
 
@@ -150,7 +151,7 @@ export default async function Home() {
             <p className="lead" style={{ margin: '16px auto 26px' }}>Del análisis a la implementación: te proponemos una solución 360° a la medida.</p>
             <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link href="/contacto" className="btn btn-primary">Conversemos</Link>
-              <a href="https://wa.me/51985850698" className="btn btn-ghost">WhatsApp +51 985 850 698</a>
+              <a href={contacto.whatsapp} className="btn btn-ghost">WhatsApp {contacto.telefono}</a>
             </div>
           </div>
         </div>

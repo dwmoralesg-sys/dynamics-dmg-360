@@ -2,12 +2,6 @@
 
 **Innovamos, conectamos, transformamos.**
 
-## Publicación oficial
-
-- Web: https://dynamics-dmg-360.vercel.app/
-- Código fuente: https://github.com/dwmoralesg-sys/dynamics-dmg-360
-- Propietario: Daniel Morales
-
 Plataforma web empresarial y administrable para Dynamics DMG 360: presenta y comercializa servicios integrales de administración y negocios, ingeniería industrial, ingeniería de sistemas y servicio técnico; capta clientes potenciales, registra solicitudes de cotización y analiza el comportamiento de los visitantes respetando su privacidad.
 
 Concepto central: **Negocio → Procesos → Tecnología.**
@@ -90,10 +84,21 @@ formulario de cotización, la analítica y el panel `/admin` requieren el backen
 - `/nosotros` — misión y visión
 - `/contacto` — solicitud de cotización
 
-**Panel administrativo**
+**Panel administrativo** (`/admin`)
 
-- `/admin/login`
-- `/admin/dashboard` — métricas y clientes potenciales
+- `/admin/login` — acceso
+- `/admin/dashboard` — resumen de métricas y últimos leads
+- `/admin/analitica` — visitas por país, ciudad, dispositivo, navegador, SO, páginas y línea de tiempo
+- `/admin/leads` — clientes potenciales: detalle, cambio de estado y generación de cotización
+- `/admin/cotizaciones` — seguimiento comercial (estado, monto, items)
+- `/admin/servicios` — CRUD del catálogo (crear, editar, activar, destacar, ordenar, eliminar)
+- `/admin/proyectos` — CRUD del portafolio
+- `/admin/contenido` — editar textos, imágenes y datos de contacto sin tocar código
+- `/admin/usuarios` — cuentas y roles (solo SUPER_ADMIN)
+- `/admin/cuenta` — perfil y cambio de contraseña
+
+Todo lo que ve el cliente es administrable desde el panel: servicios, portafolio,
+textos del inicio, misión/visión y datos de contacto (correo, teléfono, WhatsApp).
 
 **API (prefijo `/api`)**
 
@@ -115,6 +120,30 @@ no se guarda la IP en claro (solo un hash irreversible con sal), y se registran
 únicamente datos técnicos agregados (página, dispositivo, navegador, país/ciudad
 aproximados cuando el proxy los provee). Antes de publicar, añade tu aviso de
 privacidad y el consentimiento de cookies según la normativa aplicable.
+
+## Contacto y contador de visitas
+
+- La web incluye un **botón flotante de WhatsApp**, enlaces `mailto:` y `tel:`,
+  y el formulario de cotización que registra los leads en el panel.
+- En el pie de página se muestra un **contador de visitas** (total y visitantes
+  únicos aproximados), alimentado por el endpoint público `/analytics/contador`.
+- Datos de contacto actuales: `dwmoralesg@gmail.com` · `+51 985 850 698`.
+  Se editan desde `/admin/contenido` (grupo "contacto").
+
+## Integraciones sugeridas (para más contacto y automatización)
+
+Estas se pueden añadir en Fase 2 según prioridad:
+
+- **WhatsApp Business API** (Meta Cloud API o Twilio) para responder y notificar
+  automáticamente cada nuevo lead por WhatsApp.
+- **Notificaciones por correo** al recibir un lead, con Resend, SendGrid o SMTP
+  (basta con un hook en `LeadsService.create`).
+- **Calendly / Cal.com** para que el cliente agende una reunión desde la web.
+- **Messenger / Instagram** de Meta y un chat en vivo (Chatwoot, Crisp).
+- **reCAPTCHA v3 o Turnstile** para proteger el formulario de spam.
+- **Pasarela de pagos** (Culqi, Mercado Pago, Izipay o Stripe) para cobrar en línea.
+- **Google Analytics 4 / Meta Pixel** como complemento a la analítica propia.
+- **CRM** (HubSpot, Pipedrive) sincronizando los leads vía API.
 
 ## Fase 2 (posterior)
 

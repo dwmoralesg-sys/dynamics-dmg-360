@@ -10,9 +10,10 @@ async function main() {
   const nombre = process.env.SEED_ADMIN_NOMBRE ?? 'Administrador DMG';
 
   const passwordHash = await bcrypt.hash(password, 12);
+  const resetAdminPassword = process.env.SEED_ADMIN_RESET_PASSWORD === 'true';
   await prisma.usuario.upsert({
     where: { email },
-    update: {},
+    update: resetAdminPassword ? { nombre, passwordHash } : { nombre },
     create: { nombre, email, passwordHash, rol: 'SUPER_ADMIN' },
   });
   console.log(`✓ Usuario admin: ${email}`);

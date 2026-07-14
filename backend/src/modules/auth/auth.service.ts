@@ -1,8 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { LoginDto } from './dto';
+import { ChangePasswordDto, LoginDto } from './dto';
 
 @Injectable()
 export class AuthService {
@@ -39,5 +39,15 @@ export class AuthService {
         rol: usuario.rol,
       },
     };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const usuario = await this.prisma.usuario.findUnique({ where: { id: userId } });
+    if (!usuario) throw new UnauthorizedException();
+    const ok = await bcrypt.compare(dto.actual, usuario.passwordHash);
+    if (!ok) throw new BadRequestException('La contraseña actual no es correcta.');
+    const passwordHash = await bcrypt.hash(dto.nueva, 12);
+    await this.prisma.usuario.update({ where: { id: userId }, data: { passwordHash } });
+    return { ok: true };
   }
 }

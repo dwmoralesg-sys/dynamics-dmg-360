@@ -11,16 +11,20 @@ export class AnalyticsController {
 
   @Public() @Post('track')
   track(@Body() dto: TrackVisitaDto, @Req() req: Request) {
-    // Encabezados de geolocalización aproximada si el proxy/CDN los provee.
-    const pais = (req.headers['x-vercel-ip-country'] as string) || undefined;
-    const ciudad = (req.headers['x-vercel-ip-city'] as string) || undefined;
+    const h = req.headers;
+    // Geolocalización aproximada según el proxy/CDN (Vercel, Cloudflare, etc.)
+    const pais = (h['x-vercel-ip-country'] || h['cf-ipcountry'] || h['x-country-code'] || undefined) as string | undefined;
+    const ciudad = (h['x-vercel-ip-city'] || h['cf-ipcity'] || undefined) as string | undefined;
     return this.service.track(dto, {
-      ip: req.ip,
-      ua: req.headers['user-agent'],
-      pais,
-      ciudad,
+      ip: (h['x-forwarded-for'] as string)?.split(',')[0] || req.ip,
+      ua: h['user-agent'],
+      pais: pais ? decodeURIComponent(pais) : undefined,
+      ciudad: ciudad ? decodeURIComponent(ciudad) : undefined,
     });
   }
+
+  @Public() @Get('contador')
+  contador() { return this.service.contador(); }
 
   @Roles('SUPER_ADMIN', 'ADMIN', 'EDITOR') @Get('resumen')
   resumen() { return this.service.resumen(); }
