@@ -1,3 +1,10 @@
+databases:
+  - name: dynamics-dmg-360-db
+    plan: free
+    region: oregon
+    databaseName: dynamics_dmg_360
+    user: dynamics_dmg_360
+
 services:
   - type: web
     name: dynamics-dmg-360-api
@@ -15,7 +22,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: dynamics-dmg-360-db
+          property: connectionString
       - key: FRONTEND_URL
         value: https://dynamics-dmg-360.vercel.app
       - key: JWT_SECRET
